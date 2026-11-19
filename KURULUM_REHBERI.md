@@ -32,7 +32,7 @@ Proje klasörünün yapısı şöyle:
 └── otonom_arac/            ← Arduino projesi (klasör adı DEĞİŞTİRİLMEMELİ)
     ├── otonom_arac.ino     ana program, robotun adımları (durum makinesi)
     ├── ayarlar.h           ★ PİNLER VE TÜM AYARLAR — değişikliklerin %95'i burada
-    ├── surus.ino           motorlar, enkoder, konum takibi, düz git / dön
+    ├── surus.ino           motorlar, süreye dayalı konum takibi, düz git / dön
     ├── sensorler.ino       çizgi sensörleri (TCRT5000), ultrasonik (HC-SR04)
     ├── kamera.ino          HuskyLens okuma, kutu ve işaret seçimi
     ├── forklift.ino        servo (MG996R)
@@ -142,8 +142,6 @@ IDE'de sağ üstteki büyüteç simgesi ya da **Araçlar → Seri Port Ekranı**
 | Sarhoş teker | 1 | Var |
 | INR 18650 Li-ion pil + **2S pil yatağı** | 4 | Pil var, yatak/BMS kontrol edin |
 | ON/OFF anahtarı | 1 | Pil yatağında var |
-| 20 delikli enkoder diski | 2 | Var |
-| **LM393 hız sensörü modülü** (yuvalı optik sensör) | 2 | **Alınacak** |
 | **Voltaj düşürücü** (XL4015 ya da LM2596, en az 3 A) | 1 | **Alınacak** |
 | MG996R servo | 1 | Var |
 | TCRT5000 çizgi sensörü modülü (**4 pinli: VCC, GND, DO, AO**) | 2 | Var (AO pini olduğunu kontrol edin) |
@@ -152,7 +150,7 @@ IDE'de sağ üstteki büyüteç simgesi ya da **Araçlar → Seri Port Ekranı**
 | 470-1000 µF elektrolitik kondansatör (≥10 V) | 1 | Önerilir (servonun yanına) |
 | Erkek-dişi, dişi-dişi jumper kablolar | ~40 | |
 
-> **Enkoder modülü alamazsanız:** `ayarlar.h` içinde `#define ENKODER_VAR 0` yapın. Robot mesafeyi ve dönüşü süreye göre tahmin eder; çalışır ama daha az hassastır.
+> **Bu projede enkoder yok.** Robot mesafeyi ve dönüşü motor komutunun süresinden tahmin eder. Bu yüzden bölüm 10'daki kalibrasyon ve dolu pil çok önemli.
 
 > **TCRT5000 modülünüzde AO pini yoksa** (sadece 3 pin: VCC, GND, DO), bu kod o modülle çalışmaz; 4 pinli modül alın.
 
@@ -196,8 +194,7 @@ IDE'de sağ üstteki büyüteç simgesi ya da **Araçlar → Seri Port Ekranı**
 | Arduino pini (Uno) | Arduino pini (Mega) | Bağlanan | Kablo ucu |
 |---|---|---|---|
 | D0, D1 | D0, D1 | **BOŞ** | USB yükleme için |
-| D2 | D2 | Sol enkoder modülü | DO |
-| D3 | D3 | Sağ enkoder modülü | DO |
+| D2, D3 | D2, D3 | **BOŞ** | Kullanılmıyor |
 | D4 | D4 | L298N | IN1 |
 | D5 | D5 | L298N | ENA (jumper çıkarılmış) |
 | D6 | D6 | L298N | ENB (jumper çıkarılmış) |
@@ -214,7 +211,7 @@ IDE'de sağ üstteki büyüteç simgesi ya da **Araçlar → Seri Port Ekranı**
 | A3 | A3 | Sağ HC-SR04 | Echo |
 | **A4** | **20 (SDA)** | HuskyLens | **T** (yeşil) |
 | **A5** | **21 (SCL)** | HuskyLens | **R** (mavi) |
-| 5V | 5V | Enkoderler, TCRT5000'ler, HC-SR04'ler | VCC |
+| 5V | 5V | TCRT5000'ler, HC-SR04'ler | VCC |
 | GND | GND | Ortak GND | |
 
 > **Uno ile Mega arasındaki TEK fark HuskyLens'in iki kablosu.** Mega'da A4/A5 I2C pini değildir. Mega'da 20/21 numaralı pinler sağ üst köşedeki "COMMUNICATION" sırasında, üzerinde `SDA 20` ve `SCL 21` yazar. Kodda değişiklik gerekmez.
@@ -241,19 +238,6 @@ IDE'de sağ üstteki büyüteç simgesi ya da **Araçlar → Seri Port Ekranı**
 ENA/ENB'deki jumper çıkarılmazsa motorlar hız kontrolü olmadan hep tam hızda döner. ENA/ENB'de ikişer pim vardır; biri kartın 5V hattına bağlıdır, diğeri sinyal girişidir. Jumper'ı çıkardıktan sonra L298N'yi besleyip multimetreyle iki pimi GND'ye göre ölçün: **5 V gösteren pime dokunmayın, 0 V gösteren pime Arduino kablosunu takın.**
 
 Motor kablolarının hangi ucunun OUT1, hangisinin OUT2'ye gittiği önemli değil. Ters dönerse kalibrasyonda (bölüm 10, adım 1) koddan düzeltilir.
-
-#### Enkoderler (LM393 hız sensörü modülü)
-
-| Modül ucu | Sol modül | Sağ modül |
-|---|---|---|
-| VCC | 5V | 5V |
-| GND | GND | GND |
-| DO (ya da OUT/D0) | **D2** | **D3** |
-| AO (varsa) | Boş | Boş |
-
-Enkoder diskini TT motorun **arka çıkıntı miline** takın. Disk modülün **U şeklindeki yuvasının ortasından** sürtmeden geçmeli. Modülü motora sıcak silikon ya da vida ile sabitleyin.
-
-> Enkoderler başka pine **taşınamaz**. Uno'da kesme (interrupt) özelliği yalnızca D2 ve D3'te vardır.
 
 #### MG996R servo (forklift)
 
@@ -299,7 +283,6 @@ HuskyLens'in Gravity kablosunda 4 renk var:
 ### 6.4 Pinleri değiştirmek isterseniz
 
 Pin numaraları `ayarlar.h` içindeki `PIN_...` satırlarında. Değiştirirken:
-- **Enkoderler** sadece kesme pinlerinde çalışır: Uno'da 2, 3; Mega'da 2, 3, 18, 19.
 - **ENA / ENB**, PWM pinlerinde (~ işaretli) olmalı. Uno'da **9 ve 10 kullanılamaz**, çünkü Servo kütüphanesi bu pinlerin PWM'ini kapatır. 3, 5, 6, 11 uygundur.
 - **D0 / D1**'i kullanmayın.
 - HuskyLens pinleri değiştirilemez; I2C donanımına bağlıdır.
@@ -316,7 +299,6 @@ Kod aşağıdaki yerleşimi varsayıyor. Farklı yaparsanız ilgili ayar değerl
 | **Çatal** | Kalınlık < 15 mm, genişlik ~40 mm, ucu sivri. Aşağıdayken yerden ~5 mm yüksekte. | Kutunun altındaki kanal 60 mm geniş, 20 mm yüksek. Sivri uç küçük hizalama hatalarında çatalı kanala yönlendirir. |
 | **TCRT5000 ×2** | Ön altta, tekerleklerin **önünde**. Aralarında ~10 cm, zeminden 3-8 mm yukarıda, aşağı bakar. | Tekerlekler çizgiyi geçmeden çizgiyi görmeleri gerekir. İki sensör, robotun çizgiye dik hizalanmasını sağlar. |
 | **HC-SR04 ×2** | Ön köşelerde, **kutunun genişliğinin dışında**, ~15° dışa dönük, yerden 5-8 cm. | Taşınan kutu önlerini kapatmasın. Engelin yüksekliği bilinmiyor, alçak sensör kısa engeli de görür. |
-| **Enkoderler** | Motorların arka milinde. | |
 | **Sarhoş teker** | Arkada. | |
 
 Robotun **teker merkezleri arası mesafesini** (iki tekerin yere değdiği noktalar arası) ölçüp `ayarlar.h` → `TEKER_ARASI_MM` satırına yazın. Kalibrasyonda bu değer ince ayarlanacak.
@@ -398,17 +380,22 @@ HuskyLens yerdeki ince bandı uzaktan güvenilir göremez. Bu yüzden alanın **
 | # | Komut | Ne yapılır | `ayarlar.h`'de ne değişir |
 |---|---|---|---|
 | 1 | `m` | Önce sol teker 1 s ileri, 1 s geri döner, sonra sağ teker aynısını yapar. Ekrandaki "ileri" yazısında teker robotu öne götürecek yönde dönmeli. | Ters dönen taraf için `SOL_MOTOR_TERS` ya da `SAG_MOTOR_TERS` = `true`. |
-| 2 | `e` | 10 s boyunca tekerleri **elle ileri** çevirin. İki sayaç da artmalı (tur başına ~40). | Artmıyorsa kablo ve diski kontrol edin. |
-| 3 | `f` | Robot 500 mm ileri gitmeye çalışır. Gerçekte gittiği mesafeyi metreyle ölçün. | Enkoderliyse: `TEKER_CAP_MM = 65 × ölçülen / 500`. Enkodersizse: `TAM_HIZ_MM_S = eski değer × 500 / ölçülen`. |
-| 4 | `d` | Robot 360° dönmeye çalışır. Gerçekte döndüğü açıyı tahmin edin (yere bant koyup işaretleyin). | `TEKER_ARASI_MM = eski değer × 360 / gerçek açı`. 2-3 kez tekrarlayın. |
-| 5 | `s20`, `s40`, `s70` … | Servoyu açılara götürüp deneyin. | Çatalın yerden ~5 mm yüksekte, kanala girebildiği açı `FORK_ALT_DERECE`. Kutunun yerden 1-2 cm kalktığı açı `FORK_UST_DERECE`. |
-| 6 | `i` | Sensörleri önce zemine, sonra banda (siyah ve beyaz, ikisi de) ve alanın renkli bandına tutun. Değerleri not edin. | Zemin ile bant arasındaki farkın **yarısını** `IR_ESIK_FARK` yapın. |
-| 7 | `u` | Önce sensörlerin önünü boş bırakın, sonra 20 cm'ye elinizi koyun. Ardından kutuyu çatala koyup tekrar ölçün. | Kutu çataldayken okunan değer `TASIMA_KOR_CM`'den küçük olmalı. Değilse `TASIMA_KOR_CM`'i biraz artırın ya da sensörleri daha dışa çevirin. |
-| 8 | `k` | Kutuyu çatal ucunun ~3 cm önüne koyun, `w` değerini okuyun. Çatalın kutunun altına tamamen girmesi için robotun daha ne kadar ilerlemesi gerektiğini ölçün. | Okunan `w` → `KUTU_YAKIN_GENISLIK`. Ölçülen mesafe → `SON_ITIS_MM`. |
-| 9 | `k` | Kutuyu kameradan 50 cm'ye koyun, `w`'yu okuyun. Kartı 100 cm'ye koyun, `w`'yu okuyun. | `KUTU_MESAFE_K = kutu w × 500`. `ISARET_MESAFE_K = kart w × 1000`. |
-| 10 | `k` | Robotu, TCRT sensörleri alanın ön çizgisinin üstünde olacak şekilde koyun, kartın `w`'sunu okuyun. | Okunan değerin ~%80'i → `ISARET_YAKIN_GENISLIK`. |
-| 11 | `a`, `y` | Çatalı indirip kaldırın, adım 5'teki açıları doğrulayın. | |
-| 12 | `o` | İstediğiniz an robotun konum tahminini görürsünüz. | |
+| 2 | `f` | Robot 500 mm ileri gitmeye çalışır. Gerçekte gittiği mesafeyi metreyle ölçün. **Dolu pille yapın.** | `TAM_HIZ_MM_S = eski değer × ölçülen / 500`. Robot 500'den fazla gittiyse değer artar. Kodu yükleyip tekrar deneyin, 500 mm'ye ±1 cm yaklaşana kadar sürdürün. |
+| 3 | `d` | Robot 360° dönmeye çalışır. Gerçekte döndüğü açıyı tahmin edin (yere bant koyup işaretleyin). | `TEKER_ARASI_MM = eski değer × 360 / gerçek açı`. Robot 360°'den az dönüyorsa değer artar. 2-3 kez tekrarlayın. |
+| 4 | `s20`, `s40`, `s70` … | Servoyu açılara götürüp deneyin. | Çatalın yerden ~5 mm yüksekte, kanala girebildiği açı `FORK_ALT_DERECE`. Kutunun yerden 1-2 cm kalktığı açı `FORK_UST_DERECE`. |
+| 5 | `i` | Sensörleri önce zemine, sonra banda (siyah ve beyaz, ikisi de) ve alanın renkli bandına tutun. Değerleri not edin. | Zemin ile bant arasındaki farkın **yarısını** `IR_ESIK_FARK` yapın. |
+| 6 | `u` | Önce sensörlerin önünü boş bırakın, sonra 20 cm'ye elinizi koyun. Ardından kutuyu çatala koyup tekrar ölçün. | Kutu çataldayken okunan değer `TASIMA_KOR_CM`'den küçük olmalı. Değilse `TASIMA_KOR_CM`'i biraz artırın ya da sensörleri daha dışa çevirin. |
+| 7 | `k` | Kutuyu çatal ucunun ~3 cm önüne koyun, `w` değerini okuyun. Çatalın kutunun altına tamamen girmesi için robotun daha ne kadar ilerlemesi gerektiğini ölçün. | Okunan `w` → `KUTU_YAKIN_GENISLIK`. Ölçülen mesafe → `SON_ITIS_MM`. |
+| 8 | `k` | Kutuyu kameradan 50 cm'ye koyun, `w`'yu okuyun. Kartı 100 cm'ye koyun, `w`'yu okuyun. | `KUTU_MESAFE_K = kutu w × 500`. `ISARET_MESAFE_K = kart w × 1000`. |
+| 9 | `k` | Robotu, TCRT sensörleri alanın ön çizgisinin üstünde olacak şekilde koyun, kartın `w`'sunu okuyun. | Okunan değerin ~%80'i → `ISARET_YAKIN_GENISLIK`. |
+| 10 | `a`, `y` | Çatalı indirip kaldırın, adım 4'teki açıları doğrulayın. | |
+| 11 | `o` | İstediğiniz an robotun konum tahminini görürsünüz. | |
+
+**Enkoder olmadığı için dikkat:**
+- Robotun hızı pil voltajına bağlı. Kalibrasyonu ve görevi **dolu pille** yapın. Pil bitmeye yaklaşınca robot yavaşlar, mesafe ve dönüş eksik kalır.
+- Zemin ve yük hızı değiştirir. Kalibrasyonu gösterim sahasının zemininde yapın.
+- `f` komutu `HIZ_NORMAL`, `d` ve `r` komutları `HIZ_DONUS` hızında çalışır. `HIZ_...` değerlerini sonradan değiştirirseniz adım 2 ve 3'ü tekrarlayın.
+- Robot düz gitmiyor, bir yana kayıyorsa `SAG_TRIM` ile düzeltin. Sola kayıyorsa 0.95, sağa kayıyorsa 1.05 deneyin. Sonra adım 2'yi tekrarlayın.
 
 Kalibrasyon bitince `#define CALISMA_MODU 0` yapıp tekrar yükleyin.
 
@@ -442,7 +429,6 @@ Bir denemeden sonra yeniden başlatmak için pil anahtarını kapatıp açın.
 | Ayar | Varsayılan | Açıklama |
 |---|---|---|
 | `CALISMA_MODU` | `0` | `0` görev, `1` kalibrasyon menüsü. |
-| `ENKODER_VAR` | `1` | Enkoder modülü takılı değilse `0`. |
 
 ### Motorlar
 
@@ -451,7 +437,7 @@ Bir denemeden sonra yeniden başlatmak için pil anahtarını kapatıp açın.
 | `SOL_MOTOR_TERS`, `SAG_MOTOR_TERS` | `false` | Teker ters dönüyorsa (kalibrasyon adım 1). |
 | `PWM_MIN` | `90` | Robot düşük hızda kıpırdamıyorsa artırın (100-120). |
 | `PWM_MAX` | `255` | 3S pil kullanırsanız 170. |
-| `SAG_TRIM` | `1.00` | Sadece enkodersiz modda: robot sola kayıyorsa 0.95, sağa kayıyorsa 1.05 gibi. |
+| `SAG_TRIM` | `1.00` | Robot sola kayıyorsa 0.95, sağa kayıyorsa 1.05 gibi. |
 | `HIZ_NORMAL` | `70` | Genel hız (%). Robot güvenilir çalışınca artırarak süreyi kısaltın. |
 | `HIZ_YAVAS` | `45` | Hedefe yakınken ve manevralarda. |
 | `HIZ_INCE` | `35` | Son hizalama ve çizgiye dik durma. Tekerler bu hızda dönmüyorsa artırın. |
@@ -459,21 +445,19 @@ Bir denemeden sonra yeniden başlatmak için pil anahtarını kapatıp açın.
 | `HIZ_TARAMA` | `50` | Arama sırasında dönüş hızı. |
 | `KP_DUZ` | `150` | Düz giderken yön düzeltme kuvveti. Robot yılan gibi sağa sola yalpalıyorsa azaltın. |
 
-### Geometri ve enkoder
+### Geometri ve hız modeli
 
 | Ayar | Varsayılan | Açıklama |
 |---|---|---|
-| `TEKER_CAP_MM` | `65.0` | Kalibrasyon adım 3. |
-| `TEKER_ARASI_MM` | `150.0` | **Mekanik tasarımdan sonra ölçün**, kalibrasyon adım 4. |
-| `ENK_DELIK` | `20` | Diskteki delik sayısı. |
-| `ENK_DEBOUNCE_US` | `1500` | Sayaçlar zıplıyorsa artırın. Genelde dokunmayın. |
-| `TAM_HIZ_MM_S` | `450.0` | Sadece enkodersiz modda önemli, kalibrasyon adım 3. |
+| `TEKER_CAP_MM` | `65.0` | Teker çapı. Kodda kullanılmıyor, bilgi amaçlı. |
+| `TEKER_ARASI_MM` | `150.0` | **Mekanik tasarımdan sonra ölçün**, kalibrasyon adım 3. Dönüş açısını belirler. |
+| `TAM_HIZ_MM_S` | `450.0` | %100 komutta tekerin hızı (mm/s). Mesafeyi belirler, kalibrasyon adım 2. **Dolu pille ölçün.** |
 
 ### Forklift
 
 | Ayar | Varsayılan | Açıklama |
 |---|---|---|
-| `FORK_ALT_DERECE` | `20` | Çatal aşağıda (kalibrasyon adım 5). |
+| `FORK_ALT_DERECE` | `20` | Çatal aşağıda (kalibrasyon adım 4). |
 | `FORK_UST_DERECE` | `70` | Çatal yukarıda, kutu kalkmış. |
 | `FORK_ADIM_MS` | `8` | Kaldırma yumuşaklığı. Kutu sarsılıyorsa artırın, hız için azaltın. |
 
@@ -481,7 +465,7 @@ Bir denemeden sonra yeniden başlatmak için pil anahtarını kapatıp açın.
 
 | Ayar | Varsayılan | Açıklama |
 |---|---|---|
-| `IR_ESIK_FARK` | `150` | Kalibrasyon adım 6. Robot boş zeminde çizgi görüyorsa artırın, çizgiyi kaçırıyorsa azaltın. |
+| `IR_ESIK_FARK` | `150` | Kalibrasyon adım 5. Robot boş zeminde çizgi görüyorsa artırın, çizgiyi kaçırıyorsa azaltın. |
 | `ENGEL_MESAFE_CM` | `25` | Bundan yakın nesne engel sayılır. |
 | `TASIMA_KOR_CM` | `12` | Kutu taşınırken bundan yakın okumalar yok sayılır (kutunun kendi yankısı). |
 
@@ -491,13 +475,13 @@ Bir denemeden sonra yeniden başlatmak için pil anahtarını kapatıp açın.
 |---|---|---|
 | `KUTU_ID`, `ISARET_ID` | `1`, `2` | HuskyLens'te öğretilen ID'ler. Sırayı değiştirmeyin. |
 | `KUTU_MIN_GENISLIK` | `12` | Bundan küçük kırmızı lekeler gürültü sayılır. |
-| `KUTU_YAKIN_GENISLIK` | `110` | Kalibrasyon adım 8. |
+| `KUTU_YAKIN_GENISLIK` | `110` | Kalibrasyon adım 7. |
 | `KUTU_US_KAPAT_GENISLIK` | `60` | Kutu bu kadar büyük görünürse ultrasonik yok sayılır (kutunun kendisini engel sanmasın). |
-| `ISARET_YAKIN_GENISLIK` | `90` | Kalibrasyon adım 10. |
+| `ISARET_YAKIN_GENISLIK` | `90` | Kalibrasyon adım 9. |
 | `KP_HIZALAMA` | `0.25` | Hedefe dönme kuvveti. Robot hedefe yalpalayarak gidiyorsa azaltın, geç dönüyorsa artırın. |
 | `HIZALAMA_TOLERANS_PX` | `10` | Son hizalamada kabul edilen hata (piksel). |
 | `HEDEF_KAYIP_MS` | `400` | Hedef bu kadar süre görünmezse robot yeniden aramaya başlar. |
-| `KUTU_MESAFE_K`, `ISARET_MESAFE_K` | | Kalibrasyon adım 9. |
+| `KUTU_MESAFE_K`, `ISARET_MESAFE_K` | | Kalibrasyon adım 8. |
 | `ISARET_GENISLIK_MM` | `150.0` | Kartın gerçek genişliği. |
 | `KAMERA_DERECE_PIKSEL` | `0.19` | Genelde dokunmayın. |
 
@@ -506,7 +490,7 @@ Bir denemeden sonra yeniden başlatmak için pil anahtarını kapatıp açın.
 | Ayar | Varsayılan | Açıklama |
 |---|---|---|
 | `KUTU_SAYISI` | `3` | Görev açıklamasında sayı değişirse. |
-| `SON_ITIS_MM` | `130` | Kalibrasyon adım 8. |
+| `SON_ITIS_MM` | `130` | Kalibrasyon adım 7. |
 | `BIRAKMA_ARALIK_MM` | `160` | Kutu merkezleri arası mesafe (10 cm kutu + 6 cm boşluk). Boşluk 5-10 cm olmalı → 150-200 arası. |
 | `BIRAKMA_GERI_MM` | `150` | Yana kaymadan önce geri çekilme. Yan kutuya çarpıyorsa artırın. |
 | `BIRAKMA_ILERI_EK_MM` | `0` | Kutular alanın içine yeterince girmiyorsa artırın. |
@@ -538,8 +522,8 @@ KUTU_BIRAK ◀── ALAN_HIZALAN ◀──alan çizgisi── ALANA_YAKLAS
 - **KUTU_AL:** son hizalamayı yapar, çatalı indirir, `SON_ITIS_MM` kadar ileri gider, kaldırır.
 - **ALAN_ARA:** alanın yerini daha önce gördüyse önce o yöne döner, görmediyse tam tur tarar.
 - **ALANA_YAKLAS:** kartı görüntünün ortasında tutarak ilerler.
-- **ALAN_HIZALAN:** kart yakındayken görülen çizgi alanın çizgisidir. Robot, iki çizgi sensörü de çizgiyi görene kadar tekerleri ayrı ayrı ilerletir; böylece çizgiye dik durur ve kutular aynı açıyla bırakılır.
-- **KUTU_BIRAK:** bırakma sırası **sağ, sol, orta**. Robot her seferinde hâlâ boş olan ortadan hizalanır. Sağ ve sol kutular için geri çekilir, 90° döner, yana kayar, tekrar çizgiye dik döner ve bırakır.
+- **ALAN_HIZALAN:** kart yakındayken görülen çizgi alanın çizgisidir. Robot, iki çizgi sensörü de çizgiyi görene kadar tekerleri ayrı ayrı ilerletir. Böylece çizgiye dik durur ve kutular aynı açıyla bırakılır.
+- **KUTU_BIRAK:** bırakma sırası **sağ, sol, orta**. Robot her seferinde hâlâ boş olan ortadan hizalanır. Sağ ve sol kutular için geri çekilir, 90° döner, yana kayar, tekrar çizgiye dönüp çizgi sensörleriyle yeniden hizalanır ve bırakır. Yana kayma mesafesi süreyle ölçüldüğü için bu son hizalama hatayı sıfırlar.
 - **Sınır:** kart uzaktayken görülen çizgi saha sınırıdır. Robot geri çekilir ve 135° döner.
 - **Engel:** ultrasonik 25 cm'den yakın bir şey görürse robot geri çekilir, engelden uzak tarafa 60° döner ve 25 cm ilerler.
 - **Süre:** 10 dakika dolunca robot durur.
@@ -557,21 +541,24 @@ KUTU_BIRAK ◀── ALAN_HIZALAN ◀──alan çizgisi── ALANA_YAKLAS
 | Robot hiç hareket etmiyor | Motor gücü ya da ortak GND yok | Pil anahtarı açık mı? L298N GND, Arduino GND'ye bağlı mı? ENA/ENB kabloları takılı mı? |
 | Motorlar hep tam hızda dönüyor | ENA/ENB jumper'ları takılı | Jumper'ları çıkarıp D5/D6'ya bağlayın. |
 | Robot düz gitmek yerine yerinde dönüyor | Bir motor ters | Kalibrasyon adım 1. |
+| Robot düz gitmiyor, hep bir yana kayıyor | İki motorun hızı farklı | `SAG_TRIM` değerini ayarlayın (0.95 ya da 1.05). |
 | Servo kalkınca Arduino resetleniyor | Servo Arduino'dan besleniyor ya da voltaj düşüyor | Servo voltaj düşürücüden beslenmeli, kondansatör ekleyin. |
 | Robot boş zeminde "çizgi" görüp kaçıyor | Eşik düşük, sensör çok yüksekte ya da robot çizginin üstünde açıldı | `IR_ESIK_FARK`'ı artırın, sensörü 3-8 mm'ye indirin, robotu düz zeminde açın. |
 | Robot sınırı geçiyor | Eşik yüksek ya da sensörler tekerin arkasında | `IR_ESIK_FARK`'ı azaltın, sensörleri öne alın. |
 | Kutu taşırken sürekli "engel" görüyor | Kutu ultrasoniğin önünü kapatıyor | Sensörleri daha dışa çevirin ya da `TASIMA_KOR_CM`'i artırın. |
-| Kutuyu görüyor ama çatal kutuya çarpıyor | Hizalama ya da yaklaşma mesafesi yanlış | Kalibrasyon adım 8. Kamera robotun tam ortasında mı? |
+| Kutuyu görüyor ama çatal kutuya çarpıyor | Hizalama ya da yaklaşma mesafesi yanlış | Kalibrasyon adım 7. Kamera robotun tam ortasında mı? |
 | Çatal kutunun altına girmeden kaldırıyor | `SON_ITIS_MM` kısa | Artırın. |
 | Robot kutuya çok yaklaşıp itiyor | `KUTU_YAKIN_GENISLIK` büyük | Azaltın. |
 | Robot alana bıraktığı kutuyu tekrar almaya gidiyor | Kart kutuların arkasında görünmüyor ya da kart çok alçak | Kartı yükseltin (bölüm 8), `YERLESMIS_YARICAP_MM`'i artırın. |
 | Robot hiçbir şey görmeden sürekli dönüyor | HuskyLens eğitilmemiş ya da ışık değişmiş | Bölüm 9.2'yi gösterim odasında tekrarlayın. Kalibrasyonda `k` ile kontrol edin. |
-| Robot yanlış açıyla dönüyor | `TEKER_ARASI_MM` yanlış | Kalibrasyon adım 4. |
+| Robot yanlış açıyla dönüyor | `TEKER_ARASI_MM` yanlış ya da pil zayıf | Kalibrasyon adım 3. Pili şarj edip tekrar deneyin. |
+| Robot istenen mesafeden az ya da çok gidiyor | `TAM_HIZ_MM_S` yanlış ya da pil zayıf | Kalibrasyon adım 2, dolu pille. |
 
 ---
 
 ## 15. Bilinen riskler
 
+- **Enkoder yok:** konum ve açı süreden tahmin edildiği için hata zamanla birikir. Kod bunu azaltmak için alan çizgisinde ve kutu alırken sensörlerle yeniden hizalanır. Yine de pili dolu tutun ve kalibrasyonu sahada yapın.
 - **Kod Uno ve Mega için hatasız derleniyor ama henüz gerçek robotta denenmedi.** Varsayılan kalibrasyon değerleri tahmini; bölüm 10 mutlaka yapılmalı.
 - **Alan genişliği:** üç kutu ve aralarındaki 6 cm boşluk ~44 cm eder, 30 cm'lik alana sığmaz; dıştaki kutular alanın kenarından taşar. Hoca "çizginin üstüne veya arkasına" dediği için sorun olmayabilir. Gerekirse `BIRAKMA_ARALIK_MM` değerini 150'ye düşürün (5 cm boşluk).
 - **Döndürülmüş kutular:** kutu robota çapraz duruyorsa çatal ayaklara çarpabilir. Sivri çatal ucu bunu azaltır.

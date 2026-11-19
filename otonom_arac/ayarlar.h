@@ -13,11 +13,6 @@
 // ---------------------------------------------------------------------
 #define CALISMA_MODU 0
 
-// Enkoder modülü (LM393 hız sensörü + 20 delikli disk) takılı mı?
-//   1: evet, mesafe ve dönüş enkoderle ölçülür
-//   0: hayır, mesafe ve dönüş süreyle tahmin edilir (daha az hassas)
-#define ENKODER_VAR 1
-
 // ---------------------------------------------------------------------
 // PİNLER (Arduino Uno)
 // ---------------------------------------------------------------------
@@ -28,10 +23,6 @@ const uint8_t PIN_SOL_IN2 = 7;   // IN2
 const uint8_t PIN_SAG_PWM = 6;   // ENB
 const uint8_t PIN_SAG_IN3 = 8;   // IN3
 const uint8_t PIN_SAG_IN4 = 12;  // IN4
-
-// Enkoder (Uno'da kesme yalnızca 2 ve 3 numaralı pinlerde var)
-const uint8_t PIN_ENK_SOL = 2;
-const uint8_t PIN_ENK_SAG = 3;
 
 // Forklift servosu (MG996R) - Servo kütüphanesi 9-10'da PWM'i kapatır
 const uint8_t PIN_SERVO = 9;
@@ -58,7 +49,7 @@ const bool SOL_MOTOR_TERS = false;  // ileri komutunda geri dönüyorsa true yap
 const bool SAG_MOTOR_TERS = false;
 const int  PWM_MIN = 90;            // KALİBRE: tekerin dönmeye başladığı PWM
 const int  PWM_MAX = 255;           // 2S pil (7.4 V) için 255. 3S kullanırsanız ~170
-const float SAG_TRIM = 1.00;        // enkodersiz modda düz gitmiyorsa sağ motor çarpanı
+const float SAG_TRIM = 1.00;        // düz gitmiyorsa sağ motor çarpanı
 
 // Hızlar yüzde olarak (0-100)
 const int HIZ_NORMAL = 70;
@@ -71,18 +62,14 @@ const int HIZ_TARAMA = 50;
 const float KP_DUZ = 150.0;
 
 // ---------------------------------------------------------------------
-// GEOMETRİ VE ENKODER
+// GEOMETRİ VE HIZ MODELİ
+// Robotda enkoder yok: mesafe ve dönüş, motor komutunun süresinden tahmin edilir.
+// Tekerin hızı komut yüzdesiyle doğru orantılı kabul edilir (hız% x TAM_HIZ_MM_S).
 // ---------------------------------------------------------------------
 const float TEKER_CAP_MM   = 65.0;
 const float TEKER_ARASI_MM = 150.0;  // KALİBRE: mekanik tasarımdan sonra ölçün,
                                       // 360° dönüş testinde tam tur atana kadar ayarlayın
-const int   ENK_DELIK      = 20;
-// CHANGE kesmesiyle her delik 2 sayım verir -> tur başına 40 sayım (~5 mm)
-const float MM_PER_SAYIM   = (PI * TEKER_CAP_MM) / (ENK_DELIK * 2);
-const unsigned long ENK_DEBOUNCE_US = 1500;
-
-// Enkodersiz mod: %100 hızda tekerin yaklaşık hızı
-const float TAM_HIZ_MM_S = 450.0;    // KALİBRE (enkodersiz modda)
+const float TAM_HIZ_MM_S   = 450.0;  // KALİBRE: %100 komutta tekerin hızı (dolu pille ölçün)
 
 // ---------------------------------------------------------------------
 // FORKLIFT (servo açıları)
