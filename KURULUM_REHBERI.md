@@ -162,19 +162,7 @@ IDE'de sağ üstteki büyüteç simgesi ya da **Araçlar → Seri Port Ekranı**
 
 ### 5.1 Şema
 
-```
-                      ┌──────────────► L298N  "+12V" vidalı girişi
-                      │
- [4×18650, 2S2P]──[ON/OFF]──┼──────────────► Arduino  VIN pini  (ya da DC jak)
-   7.4 V                    │
-                      └──────────────► Voltaj düşürücü  IN+
-                                            OUT+ (5.0 V) ──┬──► MG996R kırmızı (+)
-                                                           ├──► HuskyLens kırmızı (+)
-                                                           └──► 1000 µF kondansatör (+)
-
- ORTAK GND:  Pil (−) ─ L298N GND ─ Arduino GND ─ Düşürücü IN−/OUT− ─ Servo kahverengi
-             ─ HuskyLens siyah ─ kondansatör (−) ─ tüm sensörlerin GND'si
-```
+![Güç bağlantı şeması](gorseller/guc-semasi.png)
 
 ### 5.2 Adımlar
 
