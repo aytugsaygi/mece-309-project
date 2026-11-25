@@ -1,5 +1,5 @@
 // =====================================================================
-//  SÜRÜŞ: L298N motorlar, süreye dayalı odometri, düz git / yerinde dön
+//  SÜRÜŞ: L298N motorlar, enkoder, odometri, düz git / yerinde dön
 //  Hızlar yüzde (-100..100). Açılar: sola (saat yönü tersi) dönüş +.
 // =====================================================================
 
@@ -13,8 +13,29 @@ void motorBaslat() {
   dur();
 }
 
-void odometriBaslat() {
+void enkoderBaslat() {
+#if ENKODER_VAR
+  pinMode(PIN_ENK_SOL, INPUT_PULLUP);
+  pinMode(PIN_ENK_SAG, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(PIN_ENK_SOL), solEnkoderISR, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(PIN_ENK_SAG), sagEnkoderISR, CHANGE);
+#endif
   oncekiOdoMs = millis();
+}
+
+// Tek kanallı enkoder yönü bilemez; yönü son motor komutundan alıyoruz
+void solEnkoderISR() {
+  unsigned long t = micros();
+  if (t - solSonKesme < ENK_DEBOUNCE_US) return;
+  solSonKesme = t;
+  solSayac += solYon;
+}
+
+void sagEnkoderISR() {
+  unsigned long t = micros();
+  if (t - sagSonKesme < ENK_DEBOUNCE_US) return;
+  sagSonKesme = t;
+  sagSayac += sagYon;
 }
 
 void motorYaz(uint8_t pinPwm, uint8_t pinA, uint8_t pinB, int hiz, bool ters) {
@@ -33,11 +54,13 @@ void motorYaz(uint8_t pinPwm, uint8_t pinA, uint8_t pinB, int hiz, bool ters) {
 }
 
 void motorlar(int sol, int sag) {
-  odometriGuncelle();   // önceki komutla gidilen yolu hesaba kat (süreye dayalı odometri için şart)
+  odometriGuncelle();   // önceki komutla gidilen yolu hesaba kat (enkodersiz mod için şart)
   sol = constrain(sol, -100, 100);
   sag = constrain(sag, -100, 100);
   solKomut = sol;
   sagKomut = sag;
+  if (sol != 0) solYon = sol > 0 ? 1 : -1;
+  if (sag != 0) sagYon = sag > 0 ? 1 : -1;
   motorYaz(PIN_SOL_PWM, PIN_SOL_IN1, PIN_SOL_IN2, sol, SOL_MOTOR_TERS);
   motorYaz(PIN_SAG_PWM, PIN_SAG_IN3, PIN_SAG_IN4, (int)(sag * SAG_TRIM), SAG_MOTOR_TERS);
 }
@@ -71,11 +94,23 @@ float aciNormalize(float a) {
 
 // Diferansiyel sürüş odometrisi: robotun (x, y, yön) tahmini
 void odometriGuncelle() {
+  float dSol, dSag;
+#if ENKODER_VAR
+  noInterrupts();
+  long s = solSayac;
+  long g = sagSayac;
+  interrupts();
+  dSol = (s - oncekiSol) * MM_PER_SAYIM;
+  dSag = (g - oncekiSag) * MM_PER_SAYIM;
+  oncekiSol = s;
+  oncekiSag = g;
+#else
   unsigned long simdi = millis();
   float dt = (simdi - oncekiOdoMs) / 1000.0;
   oncekiOdoMs = simdi;
-  float dSol = solKomut / 100.0 * TAM_HIZ_MM_S * dt;
-  float dSag = sagKomut / 100.0 * TAM_HIZ_MM_S * dt;
+  dSol = solKomut / 100.0 * TAM_HIZ_MM_S * dt;
+  dSag = sagKomut / 100.0 * TAM_HIZ_MM_S * dt;
+#endif
   float ds = (dSol + dSag) / 2.0;
   float dTeta = (dSag - dSol) / TEKER_ARASI_MM;
   odoX += ds * cos(odoTeta + dTeta / 2.0);

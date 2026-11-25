@@ -8,6 +8,7 @@ void kalibrasyonYardim() {
   Serial.println(F("k : kamera bloklarini yazdir (5 s)"));
   Serial.println(F("i : cizgi sensorleri (5 s)"));
   Serial.println(F("u : ultrasonik (5 s)"));
+  Serial.println(F("e : enkoder sayaclari (10 s, tekeri elle cevirin)"));
   Serial.println(F("m : motor yonu testi (sol ileri/geri, sag ileri/geri)"));
   Serial.println(F("f : 500 mm ileri git     g : 500 mm geri git"));
   Serial.println(F("d : 360 derece don       r : 90 derece sola don"));
@@ -77,6 +78,15 @@ void kalibrasyonDongusu() {
       }
       break;
 
+    case 'e':
+      bas = millis();
+      while (millis() - bas < 10000) {
+        Serial.print(F("Enkoder sol=")); Serial.print(solSayac);
+        Serial.print(F(" sag=")); Serial.println(sagSayac);
+        delay(300);
+      }
+      break;
+
     case 'm':
       Serial.println(F("Sol ileri")); motorlar(60, 0); delay(1000); dur(); delay(500);
       Serial.println(F("Sol geri"));  motorlar(-60, 0); delay(1000); dur(); delay(500);
@@ -110,5 +120,6 @@ void odometriYazdir() {
   Serial.print(F(" mm  y=")); Serial.print(odoY, 0);
   Serial.print(F(" mm  yon=")); Serial.print(odoTeta * RAD_TO_DEG, 1);
   Serial.print(F(" der  yol=")); Serial.print(odoYol, 0);
-  Serial.println(F(" mm"));
+  Serial.print(F(" mm  enk sol/sag=")); Serial.print(solSayac);
+  Serial.print(F("/")); Serial.println(sagSayac);
 }

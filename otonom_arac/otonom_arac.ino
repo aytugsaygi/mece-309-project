@@ -8,7 +8,7 @@
 //  Dosyalar:
 //    ayarlar.h       pinler, hızlar, eşikler, kalibrasyon sabitleri
 //    otonom_arac.ino durum makinesi (bu dosya)
-//    surus.ino       motorlar, süreye dayalı odometri, düz git / dön
+//    surus.ino       motorlar, enkoder, odometri, düz git / dön
 //    sensorler.ino   TCRT5000 çizgi, HC-SR04 engel
 //    kamera.ino      HuskyLens okuma, kutu/işaret seçimi
 //    forklift.ino    servo
@@ -35,11 +35,16 @@ unsigned long sonIsaretYakinMs = 0;
 int sonGorulenHata = 0;      // hedef en son görüntünün neresindeydi (+ sağ, - sol)
 float hizaTeta = 0;          // alan çizgisine dik yön (bırakırken kullanılır)
 
-// Odometri: enkoder yok, motor komutu x geçen süreden tahmin edilir.
-// (başlangıç noktası = 0,0; başlangıç yönü = 0 rad; sola dönüş +)
+// Enkoder
+volatile long solSayac = 0, sagSayac = 0;
+volatile int8_t solYon = 1, sagYon = 1;
+volatile unsigned long solSonKesme = 0, sagSonKesme = 0;
+
+// Odometri (başlangıç noktası = 0,0; başlangıç yönü = 0 rad; sola dönüş +)
 float odoX = 0, odoY = 0, odoTeta = 0;
 float odoYol = 0;            // toplam yol (ileri +, geri -)
 float odoDonus = 0;          // toplam dönüş (sarmalanmamış, radyan)
+long oncekiSol = 0, oncekiSag = 0;
 unsigned long oncekiOdoMs = 0;
 int solKomut = 0, sagKomut = 0;
 
@@ -69,7 +74,7 @@ void setup() {
   pinMode(PIN_LED, OUTPUT);
 
   motorBaslat();
-  odometriBaslat();
+  enkoderBaslat();
   sensorBaslat();
   catalBaslat();
 
@@ -294,7 +299,7 @@ void alanHizalanDurumu() {
 }
 
 // Çizgiye dik hizalan: her teker kendi sensörü çizgiyi görene kadar ilerler.
-// Odometri süreye dayalı olduğu için her bırakmada bu adım açı ve mesafe hatasını sıfırlar.
+// Her bırakmadan önce bu adım, yana kayma sırasında biriken açı ve mesafe hatasını sıfırlar.
 void cizgiyeHizalan() {
   unsigned long bas = millis();
   while (millis() - bas < 2500) {
@@ -318,7 +323,7 @@ void kutuBirakDurumu() {
     yoneDon(hizaTeta + (taraf > 0 ? -HALF_PI : HALF_PI), HIZ_DONUS);
     git(BIRAKMA_ARALIK_MM, HIZ_YAVAS, false, false);
     yoneDon(hizaTeta, HIZ_DONUS);
-    cizgiyeHizalan();   // süreyle ölçülen mesafe kayabilir, çizgiyi sensörle bul
+    cizgiyeHizalan();   // yana kayarken açı kayabilir, çizgiyi sensörle bulup yeniden dik dur
   }
   if (BIRAKMA_ILERI_EK_MM > 0) git(BIRAKMA_ILERI_EK_MM, HIZ_INCE, false, false);
 
