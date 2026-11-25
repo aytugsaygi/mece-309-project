@@ -96,8 +96,14 @@ const unsigned long US_ZAMAN_ASIMI_US = 6000;  // ~1 m
 // HUSKYLENS (Color Recognition modu, "Learn Multiple" açık)
 // ---------------------------------------------------------------------
 const uint8_t KUTU_ID   = 1;     // ID1 = kırmızı kutu
-const uint8_t ISARET_ID = 2;     // ID2 = bırakma alanındaki renkli işaret
+const uint8_t ISARET_ID = 2;     // ID2 = bırakma alanındaki renkli kart (mavi)
+const uint8_t ENGEL_ID  = 3;     // ID3 = engelin üstündeki renkli şerit (yeşil)
 const int KAMERA_ORTA_X = 160;   // görüntü 320x240
+
+// Engel şeridi: alt kenarı görüntüde bu y değerinden aşağıdaysa engel yakın sayılır
+const int ENGEL_YAKIN_ALT_Y = 170;      // KALİBRE: engel 25 cm öndeyken şeridin alt kenarı
+const int ENGEL_YOL_YARIM_PX = 70;      // görüntü ortasında robotun yolu sayılan şeridin yarı genişliği
+const unsigned long KAMERA_ENGEL_GECERLILIK_MS = 300;  // bundan eski kamera verisi kullanılmaz
 
 const int KUTU_MIN_GENISLIK      = 12;   // daha küçük kırmızı lekeler gürültü sayılır
 const int KUTU_YAKIN_GENISLIK    = 110;  // KALİBRE: kutu bu genişlikteyken son yaklaşmaya geç
@@ -120,7 +126,9 @@ const float KAMERA_DERECE_PIKSEL = 0.19;  // yaklaşık görüş açısı / 320
 // ---------------------------------------------------------------------
 const int KUTU_SAYISI = 3;
 const int SON_ITIS_MM = 130;          // KALİBRE: çatal kutunun altına tam girene kadar ileri
-const int BIRAKMA_ARALIK_MM = 160;    // kutu merkezleri arası (10 cm kutu + 6 cm boşluk)
+// Kutu merkezleri arası: 10 cm kutu + 4 cm boşluk. Kural: boşluk 1-7 cm -> 110-170 arası,
+// ortadaki 140 iki yönde de 3 cm hata payı bırakır.
+const int BIRAKMA_ARALIK_MM = 140;
 const int BIRAKMA_GERI_MM = 150;      // yana kaymadan önce geri çekilme
 const int BIRAKMA_ILERI_EK_MM = 0;    // kutuyu alanın daha içine itmek için ek ileri
 const int BIRAKMA_SONRASI_GERI_MM = 200;
@@ -128,8 +136,10 @@ const int BIRAKMA_SONRASI_GERI_MM = 200;
 // robot her seferinde boş olan ortadan çizgiye hizalanabilir.
 const int8_t BIRAKMA_SIRASI[KUTU_SAYISI] = {1, -1, 0};
 
+// Engel 1 m uzunluğunda bir çubuk: yanından geçmek için geniş dönüş ve uzun ilerleme
 const int KACINMA_GERI_MM  = 100;
-const int KACINMA_ILERI_MM = 250;
+const int KACINMA_DONUS_DERECE = 70;
+const int KACINMA_ILERI_MM = 350;
 const int KESIF_ILERI_MM   = 500;     // tarama sonuç vermezse bu kadar ileri git
 const int TARAMA_ADIM_DERECE = 30;
 const int TARAMA_BEKLEME_MS  = 150;   // her adımdan sonra kameranın yeni kare alması için

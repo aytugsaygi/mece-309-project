@@ -59,7 +59,9 @@ const uint8_t MAKS_KUTU = 6;
 Blok kutular[MAKS_KUTU];
 uint8_t kutuAdedi = 0;
 Blok isaret;
+Blok engelBlok;              // engel şeridi (görüntüdeki en büyüğü)
 Blok hedef;                  // en son seçilen kutu veya işaret
+unsigned long sonKameraMs = 0;
 
 // ---------------------------------------------------------------------
 void setup() {
@@ -385,10 +387,19 @@ void cizgidenKac() {
 }
 
 void engeldenKac() {
-  bool engelSolda = usSolCm < usSagCm;
+  // Kamera şeridi görüyorsa görüntüde daha çok boşluk kalan tarafa dön (çubuğun yakın ucu),
+  // görmüyorsa ultrasoniğin daha uzak ölçtüğü tarafa dön
+  bool solaDon;
+  if (engelBlok.var && millis() - sonKameraMs < KAMERA_ENGEL_GECERLILIK_MS) {
+    int solBosluk = engelBlok.x - engelBlok.w / 2;
+    int sagBosluk = 2 * KAMERA_ORTA_X - (engelBlok.x + engelBlok.w / 2);
+    solaDon = solBosluk > sagBosluk;
+  } else {
+    solaDon = usSolCm > usSagCm;
+  }
   dur();
   git(-KACINMA_GERI_MM, HIZ_NORMAL, false, false);
-  don(engelSolda ? -60 : 60, HIZ_DONUS);
+  don(solaDon ? KACINMA_DONUS_DERECE : -KACINMA_DONUS_DERECE, HIZ_DONUS);
   HareketSonuc s = git(KACINMA_ILERI_MM, HIZ_NORMAL, true, true);
   if (s == CIZGI) cizgidenKac();
 }

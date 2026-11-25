@@ -66,10 +66,11 @@ void usGuncelle() {
   usSiradakiSol = !usSiradakiSol;
 }
 
+// Engel ya da duvar: ultrasonik yakın bir şey ölçtüyse veya kamera engel şeridini yolda gördüyse
 bool engelVarMi() {
   usGuncelle();
   int alt = kutuTasiniyor ? TASIMA_KOR_CM : 2;
   bool sol = usSolCm > alt && usSolCm < ENGEL_MESAFE_CM;
   bool sag = usSagCm > alt && usSagCm < ENGEL_MESAFE_CM;
-  return sol || sag;
+  return sol || sag || kameraEngelYakin();
 }

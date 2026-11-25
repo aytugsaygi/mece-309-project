@@ -1,14 +1,16 @@
 // =====================================================================
 //  KAMERA: HuskyLens (Color Recognition) okuma ve hedef seçimi
-//  ID1 = kırmızı kutu, ID2 = bırakma alanı işareti
+//  ID1 = kırmızı kutu, ID2 = bırakma alanı kartı, ID3 = engel şeridi
 //  Görüntü 320x240 piksel; x,y blok merkezi, w,h blok boyutu
 // =====================================================================
 
-// Kameradan yeni bir kare iste. Kutuları ve en büyük işareti sakla.
+// Kameradan yeni bir kare iste. Kutuları, en büyük işareti ve en büyük engel şeridini sakla.
 bool kameraGuncelle() {
   kutuAdedi = 0;
   isaret.var = false;
+  engelBlok.var = false;
   if (!huskylens.request()) return false;
+  sonKameraMs = millis();
 
   while (huskylens.available()) {
     HUSKYLENSResult r = huskylens.read();
@@ -23,11 +25,24 @@ bool kameraGuncelle() {
       kutular[kutuAdedi++] = b;
     } else if (r.ID == ISARET_ID && (!isaret.var || b.w > isaret.w)) {
       isaret = b;
+    } else if (r.ID == ENGEL_ID && (!engelBlok.var || b.w > engelBlok.w)) {
+      engelBlok = b;
     }
   }
 
   if (isaret.var) alanKonumunuGuncelle();
   return true;
+}
+
+// Engel şeridi robotun önündeki yolda ve yakın mı?
+// Kamera aşağı baktığı için yakın nesneler görüntünün alt kısmında görünür.
+bool kameraEngelYakin() {
+  if (!engelBlok.var || millis() - sonKameraMs > KAMERA_ENGEL_GECERLILIK_MS) return false;
+  int alt = engelBlok.y + engelBlok.h / 2;
+  int sol = engelBlok.x - engelBlok.w / 2;
+  int sag = engelBlok.x + engelBlok.w / 2;
+  bool yolda = sag > KAMERA_ORTA_X - ENGEL_YOL_YARIM_PX && sol < KAMERA_ORTA_X + ENGEL_YOL_YARIM_PX;
+  return yolda && alt >= ENGEL_YAKIN_ALT_Y;
 }
 
 // Görülen bloğun saha üzerindeki yaklaşık konumu (odometri çerçevesinde)

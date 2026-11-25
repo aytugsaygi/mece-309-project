@@ -39,7 +39,13 @@ void kalibrasyonDongusu() {
             Serial.print(F(" w=")); Serial.print(isaret.w);
             Serial.print(F(" h=")); Serial.println(isaret.h);
           }
-          if (kutuAdedi == 0 && !isaret.var) Serial.println(F("(blok yok)"));
+          if (engelBlok.var) {
+            Serial.print(F("ENGEL x=")); Serial.print(engelBlok.x);
+            Serial.print(F(" w=")); Serial.print(engelBlok.w);
+            Serial.print(F(" alt_y=")); Serial.print(engelBlok.y + engelBlok.h / 2);
+            Serial.print(F(" yakin=")); Serial.println(kameraEngelYakin());
+          }
+          if (kutuAdedi == 0 && !isaret.var && !engelBlok.var) Serial.println(F("(blok yok)"));
         } else {
           Serial.println(F("HuskyLens cevap vermiyor"));
         }

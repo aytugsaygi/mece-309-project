@@ -2,6 +2,19 @@
 
 Bu rehber robotun elektronik bağlantılarını, bilgisayara kurulacak programları, kodun nasıl derlenip yükleneceğini, kalibrasyonu ve ayarların nerede değiştirileceğini baştan sona anlatıyor. Sırayla ilerlerseniz başka bir yere bakmanız gerekmez.
 
+### Görev kuralları (hocanın son maili)
+
+- **Saha:** 3×3 ya da 4×4 m. Sınırı **siyah bant ve binanın duvarı** belirliyor.
+- **Bırakma alanı:** ~**50×50 cm**, **siyah bantla** çevrili.
+- **Seçtiğimiz görev:** **3 kutuyu yan yana dizmek.** Diğer seçenek, 2 kutuyu üst üste koymak, bizim çatalımızla yapılamıyor.
+  - Kutular arasında en az **1 cm**, en fazla **7 cm** boşluk olmalı.
+  - Kutular arasındaki açı farkı **10°'yi geçmemeli**.
+  - Kutular alanın içinde ya da alanın bandının üstünde olabilir.
+- **Başlangıç:** robot da kutular da herhangi bir yerden başlayabilir.
+- **Engel:** sahanın ortasında **1 m uzunluğunda, 5-10 cm genişliğinde** tek bir engel var.
+- **Ek düzenleme:** engelin, kutuların ve alanın üstüne istediğimizi koyabiliriz.
+- **Otonomi:** robot tamamen otonom çalışacak; robota hiçbir komut gönderilmeyecek.
+
 ---
 
 ## 0. Yol haritası
@@ -148,6 +161,8 @@ IDE'de sağ üstteki büyüteç simgesi ya da **Araçlar → Seri Port Ekranı**
 | HC-SR04 ultrasonik sensör | 2 (6 var) | Var |
 | HuskyLens + 4 pinli Gravity kablosu | 1 | Var |
 | 470-1000 µF elektrolitik kondansatör (≥10 V) | 1 | Önerilir (servonun yanına) |
+| Mat **mavi** karton (~15×10 cm) ve ayak/çubuk | 1 | Bırakma alanı kartı (bölüm 8) |
+| Mat **yeşil** karton şerit ya da bant (~1 m) | 1 | Engel şeridi (bölüm 8) |
 | Erkek-dişi, dişi-dişi jumper kablolar | ~40 | |
 
 > **Bu projede enkoder yok.** Robot mesafeyi ve dönüşü motor komutunun süresinden tahmin eder. Bu yüzden bölüm 10'daki kalibrasyon ve dolu pil çok önemli.
@@ -298,33 +313,43 @@ Kod aşağıdaki yerleşimi varsayıyor. Farklı yaparsanız ilgili ayar değerl
 | **HuskyLens** | Robotun **orta ekseninde**, çatalla aynı hizada. **Yerden ≥ 15 cm** yükseklikte, hafif aşağı bakar. | Kod, kameranın ortasını çatalın ortası kabul eder. Taşınan kutunun (10 cm) üstünden alanı görebilmesi gerekir. |
 | **Çatal** | Kalınlık < 15 mm, genişlik ~40 mm, ucu sivri. Aşağıdayken yerden ~5 mm yüksekte. | Kutunun altındaki kanal 60 mm geniş, 20 mm yüksek. Sivri uç küçük hizalama hatalarında çatalı kanala yönlendirir. |
 | **TCRT5000 ×2** | Ön altta, tekerleklerin **önünde**. Aralarında ~10 cm, zeminden 3-8 mm yukarıda, aşağı bakar. | Tekerlekler çizgiyi geçmeden çizgiyi görmeleri gerekir. İki sensör, robotun çizgiye dik hizalanmasını sağlar. |
-| **HC-SR04 ×2** | Ön köşelerde, **kutunun genişliğinin dışında**, ~15° dışa dönük, yerden 5-8 cm. | Taşınan kutu önlerini kapatmasın. Engelin yüksekliği bilinmiyor, alçak sensör kısa engeli de görür. |
+| **HC-SR04 ×2** | Ön köşelerde, **kutunun genişliğinin dışında**, ~15° dışa dönük, yerden **~5 cm**. | Taşınan kutu önlerini kapatmasın. Sahanın bazı kenarları bant değil duvar; çizgi sensörleri duvarı göremez, duvarı bu sensörler algılar. Engelin yüksekliği bilinmiyor; alçak takılan sensör kısa engeli de görür. |
 | **Sarhoş teker** | Arkada. | |
 
 Robotun **teker merkezleri arası mesafesini** (iki tekerin yere değdiği noktalar arası) ölçüp `ayarlar.h` → `TEKER_ARASI_MM` satırına yazın. Kalibrasyonda bu değer ince ayarlanacak.
 
 ---
 
-## 8. Bırakma alanı işareti
+## 8. Bırakma alanı kartı ve engel şeridi
 
-HuskyLens yerdeki ince bandı uzaktan güvenilir göremez. Bu yüzden alanın **arka kenarına dik duran renkli bir kart** koyuyoruz:
+### 8.1 Bırakma alanı kartı (zorunlu)
+
+Bırakma alanının bandı da saha sınırı gibi **siyah**. Çizgi sensörleri ikisini ayırt edemez. Robot, gördüğü çizginin alan çizgisi mi saha sınırı mı olduğunu **kartın yakında olup olmadığına bakarak** anlar. Bu yüzden alanın **arka kenarına dik duran renkli bir kart** koymak zorunlu:
 
 ```
-          ┌───────────────┐   ← renkli kart (~15 cm genişlik), alt kenarı yerden ~13 cm yukarıda
+          ┌───────────────┐   ← mavi kart (~15 cm genişlik), alt kenarı yerden ~13 cm yukarıda
           │     MAVİ      │
           └───────┬───────┘
                   │  ayak / çubuk
    ┌──────────────┴──────────────┐
-   │                             │   30 × 30 cm alan (bantla çevrili)
-   │    [kutu]  [kutu]  [kutu]   │
+   │                             │   ~50 × 50 cm alan (siyah bantla çevrili)
+   │                             │
+   │   [kutu]  [kutu]  [kutu]    │   ← kutular ön çizginin hemen içine dizilir (~38 cm)
    └─────────────────────────────┘   ← robot buradan, ön çizgiden yaklaşır
                ▲ robot
 ```
 
-- **Renk:** mavi ya da yeşil. Kırmızı (kutu), kahverengi (tahta engel), siyah veya beyaz (sınır bandı) olmamalı. Mat karton seçin; parlak yüzey ışığı yansıtır.
+- **Renk:** **mavi.** Kırmızı (kutu), yeşil (engel şeridi), kahverengi (tahta) ya da siyah/beyaz olmamalı. Mat karton seçin; parlak yüzey ışığı yansıtır.
 - **Genişlik:** ~15 cm. Farklı yaparsanız `ayarlar.h` → `ISARET_GENISLIK_MM` değerini güncelleyin.
 - **Yükseklik:** kartın renkli kısmının **alt kenarı kutuların üstünde** kalmalı (yerden ~13 cm). Kod, kartın altında görünen kırmızıları "daha önce bırakılmış kutu" sayar ve tekrar almaya çalışmaz.
 - **Sadece ön yüzü renkli olsun ve sahaya baksın.** Böylece robot alana hep aynı taraftan yaklaşır ve kutular aynı sıraya dizilir.
+- Alan bir duvarın dibindeyse kartı duvara yapıştırabilirsiniz; yine kutuların üstünde kalmalı.
+
+### 8.2 Engel şeridi (önerilir)
+
+Engel 1 m uzunluğunda ince bir çubuk. Ultrasonik sensörler uzun ve düz bir yüzeye eğik açıyla yaklaşınca yankı alamayabilir. Bu yüzden engelin **üst yüzeyine boydan boya mat yeşil bir şerit** (karton ya da bant) yapıştırın. HuskyLens bunu **ID3** olarak öğrenir ve robot engeli kamerayla da görür. Engelin hangi ucunun daha yakın olduğunu da görüntüden anlayıp o taraftan dolaşır.
+
+Şerit konmazsa robot engeli sadece ultrasonikle algılar; kod yine çalışır, ama engeli kaçırma riski artar.
 
 ---
 
@@ -342,9 +367,12 @@ HuskyLens yerdeki ince bandı uzaktan güvenilir göremez. Bu yüzden alanın **
 2. Fonksiyon düğmesine **uzun basın** (parametre ayarları açılır). **Learn Multiple**'ı bulun ve **açın** (ON). **Save & Return** ile çıkın.
 3. **ID1 = kırmızı kutu:** ekrandaki artıyı kutunun ortasına tutun. **Öğrenme düğmesini** (sağ üstteki düğme) **basılı tutun**. Sarı çerçeve kutunun rengini kaplayınca düğmeyi bırakın.
 4. Ekranda "Click again to continue! Click other button to finish" yazar. Geri sayım bitmeden öğrenme düğmesine **kısa** basın; sıradaki ID'yi öğrenmeye geçer.
-5. **ID2 = alan kartı:** artıyı mavi/yeşil karta tutun, öğrenme düğmesini **basılı tutun**, çerçeve kartı kaplayınca bırakın.
-6. Aynı yazı tekrar çıkınca bu sefer **fonksiyon düğmesine** kısa basın (ya da geri sayımın bitmesini bekleyin). Öğrenme biter.
-7. Kontrol: kutuya bakınca ekranda **"ID1"**, karta bakınca **"ID2"** yazmalı.
+5. **ID2 = alan kartı:** artıyı mavi karta tutun, öğrenme düğmesini **basılı tutun**, çerçeve kartı kaplayınca bırakın. Aynı yazı çıkınca öğrenme düğmesine yine **kısa** basın.
+6. **ID3 = engel şeridi:** artıyı yeşil şeride tutun, öğrenme düğmesini **basılı tutun**, çerçeve şeridi kaplayınca bırakın.
+7. Aynı yazı tekrar çıkınca bu sefer **fonksiyon düğmesine** kısa basın (ya da geri sayımın bitmesini bekleyin). Öğrenme biter.
+8. Kontrol: kutuya bakınca ekranda **"ID1"**, karta bakınca **"ID2"**, şeride bakınca **"ID3"** yazmalı.
+
+**Sıra önemli:** kodda ID1 kutu, ID2 kart, ID3 şerit olarak tanımlı. Engel şeridi kullanmayacaksanız ID3'ü öğretmeyin, kod yine çalışır.
 
 **Yeniden öğretmek için:** Color Recognition modundayken öğrenme düğmesine kısa basın, ekranda "Click again to forget" yazar, geri sayım bitmeden tekrar basın. Tüm renkler silinir; adım 3'ten başlayın.
 
@@ -383,13 +411,14 @@ HuskyLens yerdeki ince bandı uzaktan güvenilir göremez. Bu yüzden alanın **
 | 2 | `f` | Robot 500 mm ileri gitmeye çalışır. Gerçekte gittiği mesafeyi metreyle ölçün. **Dolu pille yapın.** | `TAM_HIZ_MM_S = eski değer × ölçülen / 500`. Robot 500'den fazla gittiyse değer artar. Kodu yükleyip tekrar deneyin, 500 mm'ye ±1 cm yaklaşana kadar sürdürün. |
 | 3 | `d` | Robot 360° dönmeye çalışır. Gerçekte döndüğü açıyı tahmin edin (yere bant koyup işaretleyin). | `TEKER_ARASI_MM = eski değer × 360 / gerçek açı`. Robot 360°'den az dönüyorsa değer artar. 2-3 kez tekrarlayın. |
 | 4 | `s20`, `s40`, `s70` … | Servoyu açılara götürüp deneyin. | Çatalın yerden ~5 mm yüksekte, kanala girebildiği açı `FORK_ALT_DERECE`. Kutunun yerden 1-2 cm kalktığı açı `FORK_UST_DERECE`. |
-| 5 | `i` | Sensörleri önce zemine, sonra banda (siyah ve beyaz, ikisi de) ve alanın renkli bandına tutun. Değerleri not edin. | Zemin ile bant arasındaki farkın **yarısını** `IR_ESIK_FARK` yapın. |
+| 5 | `i` | Sensörleri önce zemine, sonra siyah banda tutun. Değerleri not edin. | Zemin ile bant arasındaki farkın **yarısını** `IR_ESIK_FARK` yapın. |
 | 6 | `u` | Önce sensörlerin önünü boş bırakın, sonra 20 cm'ye elinizi koyun. Ardından kutuyu çatala koyup tekrar ölçün. | Kutu çataldayken okunan değer `TASIMA_KOR_CM`'den küçük olmalı. Değilse `TASIMA_KOR_CM`'i biraz artırın ya da sensörleri daha dışa çevirin. |
 | 7 | `k` | Kutuyu çatal ucunun ~3 cm önüne koyun, `w` değerini okuyun. Çatalın kutunun altına tamamen girmesi için robotun daha ne kadar ilerlemesi gerektiğini ölçün. | Okunan `w` → `KUTU_YAKIN_GENISLIK`. Ölçülen mesafe → `SON_ITIS_MM`. |
 | 8 | `k` | Kutuyu kameradan 50 cm'ye koyun, `w`'yu okuyun. Kartı 100 cm'ye koyun, `w`'yu okuyun. | `KUTU_MESAFE_K = kutu w × 500`. `ISARET_MESAFE_K = kart w × 1000`. |
 | 9 | `k` | Robotu, TCRT sensörleri alanın ön çizgisinin üstünde olacak şekilde koyun, kartın `w`'sunu okuyun. | Okunan değerin ~%80'i → `ISARET_YAKIN_GENISLIK`. |
-| 10 | `a`, `y` | Çatalı indirip kaldırın, adım 4'teki açıları doğrulayın. | |
-| 11 | `o` | İstediğiniz an robotun konum tahminini görürsünüz. | |
+| 10 | `k` | Robotu engele dik bakacak şekilde, engelden **25 cm** uzağa koyun. `ENGEL ... alt_y=` değerini okuyun. | Okunan `alt_y` → `ENGEL_YAKIN_ALT_Y`. Sonra robotu 50 cm'ye çekip `yakin=0` yazdığını kontrol edin. |
+| 11 | `a`, `y` | Çatalı indirip kaldırın, adım 4'teki açıları doğrulayın. | |
+| 12 | `o` | İstediğiniz an robotun konum tahminini görürsünüz. | |
 
 **Enkoder olmadığı için dikkat:**
 - Robotun hızı pil voltajına bağlı. Kalibrasyonu ve görevi **dolu pille** yapın. Pil bitmeye yaklaşınca robot yavaşlar, mesafe ve dönüş eksik kalır.
@@ -473,7 +502,10 @@ Bir denemeden sonra yeniden başlatmak için pil anahtarını kapatıp açın.
 
 | Ayar | Varsayılan | Açıklama |
 |---|---|---|
-| `KUTU_ID`, `ISARET_ID` | `1`, `2` | HuskyLens'te öğretilen ID'ler. Sırayı değiştirmeyin. |
+| `KUTU_ID`, `ISARET_ID`, `ENGEL_ID` | `1`, `2`, `3` | HuskyLens'te öğretilen ID'ler. Sırayı değiştirmeyin. |
+| `ENGEL_YAKIN_ALT_Y` | `170` | Kalibrasyon adım 10. Robot engele çok yaklaşıyorsa azaltın, çok erken kaçıyorsa artırın. |
+| `ENGEL_YOL_YARIM_PX` | `70` | Görüntünün ortasında "robotun yolu" sayılan bölgenin yarı genişliği. Robot engelin ucuna sürtünüyorsa artırın. |
+| `KAMERA_ENGEL_GECERLILIK_MS` | `300` | Bundan eski kamera verisi engel kararında kullanılmaz. Dokunmayın. |
 | `KUTU_MIN_GENISLIK` | `12` | Bundan küçük kırmızı lekeler gürültü sayılır. |
 | `KUTU_YAKIN_GENISLIK` | `110` | Kalibrasyon adım 7. |
 | `KUTU_US_KAPAT_GENISLIK` | `60` | Kutu bu kadar büyük görünürse ultrasonik yok sayılır (kutunun kendisini engel sanmasın). |
@@ -491,12 +523,14 @@ Bir denemeden sonra yeniden başlatmak için pil anahtarını kapatıp açın.
 |---|---|---|
 | `KUTU_SAYISI` | `3` | Görev açıklamasında sayı değişirse. |
 | `SON_ITIS_MM` | `130` | Kalibrasyon adım 7. |
-| `BIRAKMA_ARALIK_MM` | `160` | Kutu merkezleri arası mesafe (10 cm kutu + 6 cm boşluk). Boşluk 5-10 cm olmalı → 150-200 arası. |
+| `BIRAKMA_ARALIK_MM` | `140` | Kutu merkezleri arası mesafe (10 cm kutu + 4 cm boşluk). Kurala göre boşluk 1-7 cm olmalı → değer **110-170** arasında kalmalı. 140, iki yönde de 3 cm hata payı bırakır. |
 | `BIRAKMA_GERI_MM` | `150` | Yana kaymadan önce geri çekilme. Yan kutuya çarpıyorsa artırın. |
 | `BIRAKMA_ILERI_EK_MM` | `0` | Kutular alanın içine yeterince girmiyorsa artırın. |
 | `BIRAKMA_SONRASI_GERI_MM` | `200` | Bıraktıktan sonra geri çekilme. |
 | `BIRAKMA_SIRASI` | `{1, -1, 0}` | `1` sağ, `-1` sol, `0` orta. **Orta en sonda kalmalı.** |
-| `KACINMA_GERI_MM`, `KACINMA_ILERI_MM` | `100`, `250` | Engel ve çizgiden kaçarken geri çekilme ve ilerleme. |
+| `KACINMA_GERI_MM` | `100` | Engel ve çizgiden kaçarken geri çekilme. |
+| `KACINMA_DONUS_DERECE` | `70` | Engelden kaçarken dönüş açısı. |
+| `KACINMA_ILERI_MM` | `350` | Döndükten sonra ilerleme. 1 m'lik engelin etrafından dolaşmakta zorlanıyorsa artırın. |
 | `KESIF_ILERI_MM` | `500` | Tam turda bir şey bulamazsa bu kadar ileri gider. |
 | `TARAMA_ADIM_DERECE` | `30` | Arama adımı. |
 | `TARAMA_BEKLEME_MS` | `150` | Her adımda kameraya tanınan süre. Hedefi kaçırıyorsa artırın. |
@@ -525,7 +559,7 @@ KUTU_BIRAK ◀── ALAN_HIZALAN ◀──alan çizgisi── ALANA_YAKLAS
 - **ALAN_HIZALAN:** kart yakındayken görülen çizgi alanın çizgisidir. Robot, iki çizgi sensörü de çizgiyi görene kadar tekerleri ayrı ayrı ilerletir. Böylece çizgiye dik durur ve kutular aynı açıyla bırakılır.
 - **KUTU_BIRAK:** bırakma sırası **sağ, sol, orta**. Robot her seferinde hâlâ boş olan ortadan hizalanır. Sağ ve sol kutular için geri çekilir, 90° döner, yana kayar, tekrar çizgiye dönüp çizgi sensörleriyle yeniden hizalanır ve bırakır. Yana kayma mesafesi süreyle ölçüldüğü için bu son hizalama hatayı sıfırlar.
 - **Sınır:** kart uzaktayken görülen çizgi saha sınırıdır. Robot geri çekilir ve 135° döner.
-- **Engel:** ultrasonik 25 cm'den yakın bir şey görürse robot geri çekilir, engelden uzak tarafa 60° döner ve 25 cm ilerler.
+- **Engel ve duvar:** ultrasonik 25 cm'den yakın bir şey ölçerse ya da kamera yeşil engel şeridini yakında ve yolun üstünde görürse robot geri çekilir. Sonra engelin daha kısa kalan ucuna doğru 70° döner ve 35 cm ilerler. Şerit görünmüyorsa, ultrasoniğin daha uzak ölçtüğü tarafa döner.
 - **Süre:** 10 dakika dolunca robot durur.
 
 ---
@@ -549,6 +583,9 @@ KUTU_BIRAK ◀── ALAN_HIZALAN ◀──alan çizgisi── ALANA_YAKLAS
 | Kutuyu görüyor ama çatal kutuya çarpıyor | Hizalama ya da yaklaşma mesafesi yanlış | Kalibrasyon adım 7. Kamera robotun tam ortasında mı? |
 | Çatal kutunun altına girmeden kaldırıyor | `SON_ITIS_MM` kısa | Artırın. |
 | Robot kutuya çok yaklaşıp itiyor | `KUTU_YAKIN_GENISLIK` büyük | Azaltın. |
+| Robot engele çarpıyor | Ultrasonik engeli görmüyor (engel alçak ya da robot eğik yaklaşıyor) | Engel şeridini ekleyip ID3 olarak öğretin (bölüm 8.2, 9.2). Sensörleri alçaltın. |
+| Robot duvara çarpıyor | Ultrasonik yüksekte ya da çok dışa dönük | Sensörleri ~5 cm yüksekliğe indirin, dış açıyı azaltın. |
+| Kutular arası boşluk 7 cm'yi geçiyor ya da kutular değiyor | Yana kayma mesafesi ya da dönüş açısı hatalı | Dolu pille kalibrasyon adım 2-3'ü tekrarlayın, sonra `BIRAKMA_ARALIK_MM`'i ayarlayın. |
 | Robot alana bıraktığı kutuyu tekrar almaya gidiyor | Kart kutuların arkasında görünmüyor ya da kart çok alçak | Kartı yükseltin (bölüm 8), `YERLESMIS_YARICAP_MM`'i artırın. |
 | Robot hiçbir şey görmeden sürekli dönüyor | HuskyLens eğitilmemiş ya da ışık değişmiş | Bölüm 9.2'yi gösterim odasında tekrarlayın. Kalibrasyonda `k` ile kontrol edin. |
 | Robot yanlış açıyla dönüyor | `TEKER_ARASI_MM` yanlış ya da pil zayıf | Kalibrasyon adım 3. Pili şarj edip tekrar deneyin. |
@@ -560,7 +597,8 @@ KUTU_BIRAK ◀── ALAN_HIZALAN ◀──alan çizgisi── ALANA_YAKLAS
 
 - **Enkoder yok:** konum ve açı süreden tahmin edildiği için hata zamanla birikir. Kod bunu azaltmak için alan çizgisinde ve kutu alırken sensörlerle yeniden hizalanır. Yine de pili dolu tutun ve kalibrasyonu sahada yapın.
 - **Kod Uno ve Mega için hatasız derleniyor ama henüz gerçek robotta denenmedi.** Varsayılan kalibrasyon değerleri tahmini; bölüm 10 mutlaka yapılmalı.
-- **Alan genişliği:** üç kutu ve aralarındaki 6 cm boşluk ~44 cm eder, 30 cm'lik alana sığmaz; dıştaki kutular alanın kenarından taşar. Hoca "çizginin üstüne veya arkasına" dediği için sorun olmayabilir. Gerekirse `BIRAKMA_ARALIK_MM` değerini 150'ye düşürün (5 cm boşluk).
+- **Engelin yüksekliği bilinmiyor.** Çok alçaksa (ör. 3 cm) ultrasonik görmeyebilir; engel şeridi bu yüzden önemli.
+- **Duvar dibindeki kutular:** kutu duvara dayalıysa robotun çatalı kutunun duvar tarafındaki kanala giremez. Robot kutuya açık taraftan yaklaşmaya çalışır, ama duvara çok yakın kutularda zorlanabilir.
 - **Döndürülmüş kutular:** kutu robota çapraz duruyorsa çatal ayaklara çarpabilir. Sivri çatal ucu bunu azaltır.
 - **Sahanın çevresindeki kırmızı nesneler:** robot onlara doğru gidip sınırda dönmeye devam edebilir. Gösterimde sahanın çevresinde kırmızı bir şey (kıyafet, çanta) olmasın.
 - **Işık:** HuskyLens'in renk tanıması ışığa bağlı. Gösterim günü, o odada yeniden eğitin.

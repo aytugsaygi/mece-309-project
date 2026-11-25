@@ -100,6 +100,8 @@ HareketSonuc git(int mm, int hiz, bool cizgiKontrol, bool engelKontrol) {
   while (fabs(odoYol - basYol) < abs(mm)) {
     if (millis() - bas > zamanAsimi) break;
     if (cizgiKontrol && yon > 0 && cizgiVarMi()) { sonuc = CIZGI; break; }
+    // Kameraya 100 ms'de bir bak ki engel şeridi de kontrol edilsin
+    if (engelKontrol && yon > 0 && millis() - sonKameraMs > 100) kameraGuncelle();
     if (engelKontrol && yon > 0 && engelVarMi()) { sonuc = ENGEL; break; }
     float hata = aciNormalize(hedefTeta - odoTeta);   // + ise sola düzeltmeli
     int duz = (int)(hata * KP_DUZ);
